@@ -1,0 +1,20 @@
+{
+  "routes": [
+    {
+      "from": "Tokyo",
+      "to": "Kyoto",
+      "mode": "Shinkansen",
+      "duration_hours": 2.5,
+      "cost_usd": 120,
+      "notes": "Book Hikari or Kodama; JR Pass may save if 2+ long-distance legs"
+    },
+    {
+      "from": "Kyoto",
+      "to": "Tokyo",
+      "mode": "Shinkansen",
+      "duration_hours": 2.5,
+      "cost_usd": 120,
+      "notes": "Return leg on Nozomi or Hikari"
+    }
+  ]
+}

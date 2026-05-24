@@ -1,0 +1,49 @@
+{
+  "city": "Tokyo",
+  "coordinates": { "lat": 35.6762, "lon": 139.6503 },
+  "neighborhoods": [
+    {
+      "name": "Shinjuku",
+      "fit_score": 0.85,
+      "tags": ["transit", "food", "nightlife"],
+      "reason": "Central transit hub with excellent food options"
+    },
+    {
+      "name": "Shibuya",
+      "fit_score": 0.75,
+      "tags": ["shopping", "nightlife"],
+      "reason": "Vibrant area, good for first-time visitors"
+    }
+  ],
+  "attractions": [
+    {
+      "name": "Senso-ji",
+      "category": "temple",
+      "crowd_level": "high",
+      "best_time": "early morning",
+      "estimated_cost_usd": 0
+    },
+    {
+      "name": "Meiji Shrine",
+      "category": "temple",
+      "crowd_level": "medium",
+      "best_time": "early morning",
+      "estimated_cost_usd": 0
+    },
+    {
+      "name": "Tsukiji Outer Market",
+      "category": "food",
+      "crowd_level": "medium",
+      "best_time": "weekday morning",
+      "estimated_cost_usd": 15
+    },
+    {
+      "name": "Shibuya Crossing",
+      "category": "sightseeing",
+      "crowd_level": "high",
+      "best_time": "late evening",
+      "estimated_cost_usd": 0
+    }
+  ],
+  "food_highlights": ["Ramen in Shinjuku", "Tsukiji Outer Market", "Izakaya in Shibuya"]
+}

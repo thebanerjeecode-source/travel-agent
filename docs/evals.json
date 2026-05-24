@@ -1,0 +1,715 @@
+{
+  "version": "1.0.0",
+  "scope": "llm-driven-v1",
+  "description": "Evaluation suite for the Travel Planning Multi-Agent System (Phases 0-3, 5). Maps to implementation-plan.md and edgecase.md.",
+  "pass_thresholds": {
+    "phase_0": 1.0,
+    "phase_1": 0.9,
+    "phase_2": 0.85,
+    "phase_3": 0.85,
+    "phase_5_e2e": 0.8,
+    "overall_release": 0.85
+  },
+  "scoring": {
+    "pass": 1,
+    "partial": 0.5,
+    "fail": 0
+  },
+  "suites": [
+    {
+      "id": "phase_0_foundation",
+      "name": "Phase 0 — Foundation",
+      "phase": 0,
+      "type": "unit",
+      "cases": [
+        {
+          "id": "P0-001",
+          "name": "Schema validation — TravelRequirements",
+          "edge_case_ref": null,
+          "input": {
+            "fixture": "valid_travel_requirements.json"
+          },
+          "assertions": [
+            { "type": "schema_valid", "model": "TravelRequirements" }
+          ],
+          "priority": "P0"
+        },
+        {
+          "id": "P0-002",
+          "name": "Schema validation — TripPlan",
+          "edge_case_ref": null,
+          "input": {
+            "fixture": "valid_trip_plan.json"
+          },
+          "assertions": [
+            { "type": "schema_valid", "model": "TripPlan" }
+          ],
+          "priority": "P0"
+        },
+        {
+          "id": "P0-003",
+          "name": "Stub pipeline runs end-to-end",
+          "edge_case_ref": null,
+          "input": {
+            "request": "Plan a 5-day trip to Japan. Tokyo + Kyoto. $3,000 budget."
+          },
+          "assertions": [
+            { "type": "exit_code", "equals": 0 },
+            { "type": "output_has_keys", "keys": ["summary", "day_by_day", "budget", "validation_passed"] },
+            { "type": "trace_contains_agents", "agents": ["intent_parser", "destination_research", "itinerary_builder", "accommodation", "logistics", "budget_analyst", "validator"] }
+          ],
+          "priority": "P0"
+        },
+        {
+          "id": "P0-004",
+          "name": "TripContext read/write roundtrip",
+          "edge_case_ref": null,
+          "input": {
+            "fixture": "sample_trip_context.json"
+          },
+          "assertions": [
+            { "type": "context_roundtrip", "fields_preserved": ["requirements", "day_plans", "budget"] }
+          ],
+          "priority": "P0"
+        }
+      ]
+    },
+    {
+      "id": "phase_1_intent",
+      "name": "Phase 1 — Intent Parser & Orchestrator",
+      "phase": 1,
+      "type": "unit_integration",
+      "agent": "intent_parser",
+      "cases": [
+        {
+          "id": "P1-001",
+          "name": "Canonical Japan request",
+          "edge_case_ref": null,
+          "input": {
+            "request": "Plan a 5-day trip to Japan. Tokyo + Kyoto. $3,000 budget. Love food and temples, hate crowds."
+          },
+          "assertions": [
+            { "type": "field_equals", "path": "requirements.duration_days", "equals": 5 },
+            { "type": "field_contains_all", "path": "requirements.destinations", "values": ["Tokyo", "Kyoto"] },
+            { "type": "field_equals", "path": "requirements.budget_usd", "equals": 3000 },
+            { "type": "field_contains_all", "path": "requirements.interests", "values": ["food", "temples"] },
+            { "type": "field_contains", "path": "requirements.dislikes", "value": "crowds" }
+          ],
+          "priority": "P0"
+        },
+        {
+          "id": "P1-002",
+          "name": "Europe multi-city request",
+          "edge_case_ref": null,
+          "input": {
+            "request": "10 days in Europe. Paris and Rome. $5,000. Art and history."
+          },
+          "assertions": [
+            { "type": "field_gte", "path": "requirements.duration_days", "gte": 10 },
+            { "type": "field_contains", "path": "requirements.destinations", "value": "Paris" },
+            { "type": "field_contains", "path": "requirements.destinations", "value": "Rome" },
+            { "type": "field_gte", "path": "requirements.budget_usd", "gte": 5000 }
+          ],
+          "priority": "P1"
+        },
+        {
+          "id": "P1-003",
+          "name": "Domestic US request",
+          "edge_case_ref": null,
+          "input": {
+            "request": "Long weekend in New York City. 3 days. $1,500. Broadway and food."
+          },
+          "assertions": [
+            { "type": "field_equals", "path": "requirements.duration_days", "equals": 3 },
+            { "type": "field_contains", "path": "requirements.destinations", "value": "New York" }
+          ],
+          "priority": "P1"
+        },
+        {
+          "id": "P1-004",
+          "name": "Missing budget — assumed default",
+          "edge_case_ref": "IN-10",
+          "input": {
+            "request": "5 days in Tokyo. Love anime and food."
+          },
+          "assertions": [
+            { "type": "field_exists", "path": "requirements.budget_usd" },
+            { "type": "assumptions_contain", "pattern": "budget" }
+          ],
+          "priority": "P0"
+        },
+        {
+          "id": "P1-005",
+          "name": "Missing duration — assumed default",
+          "edge_case_ref": "IN-11",
+          "input": {
+            "request": "Trip to Kyoto with $2,000 budget. Temples and gardens."
+          },
+          "assertions": [
+            { "type": "field_exists", "path": "requirements.duration_days" },
+            { "type": "field_gte", "path": "requirements.duration_days", "gte": 1 },
+            { "type": "assumptions_contain", "pattern": "duration|days" }
+          ],
+          "priority": "P0"
+        },
+        {
+          "id": "P1-006",
+          "name": "Empty request — abort",
+          "edge_case_ref": "IN-01",
+          "input": {
+            "request": ""
+          },
+          "assertions": [
+            { "type": "status_equals", "equals": "failed" },
+            { "type": "output_contains_message", "pattern": "describe|provide|enter" }
+          ],
+          "priority": "P0"
+        },
+        {
+          "id": "P1-007",
+          "name": "No destinations — abort",
+          "edge_case_ref": "IN-03",
+          "input": {
+            "request": "I want a relaxing beach vacation for 7 days. Budget $2,000."
+          },
+          "assertions": [
+            { "type": "status_in", "values": ["failed", "clarification_needed"] },
+            { "type": "output_contains_message", "pattern": "destination|where|city|country" }
+          ],
+          "priority": "P0"
+        },
+        {
+          "id": "P1-008",
+          "name": "Jaipur India request",
+          "edge_case_ref": "DR-01",
+          "input": {
+            "request": "Plan a 4-day trip to Jaipur. $1,200 budget. Love forts and street food, hate crowds."
+          },
+          "assertions": [
+            { "type": "field_equals", "path": "requirements.duration_days", "equals": 4 },
+            { "type": "field_contains", "path": "requirements.destinations", "value": "Jaipur" },
+            { "type": "field_contains_all", "path": "requirements.interests", "values": ["forts", "street food"] }
+          ],
+          "priority": "P1"
+        },
+        {
+          "id": "P1-009",
+          "name": "Invalid JSON retry — agent resilience",
+          "edge_case_ref": "OR-01",
+          "input": {
+            "request": "3 days in Bangkok. $800 budget.",
+            "simulate": "invalid_json_first_attempt"
+          },
+          "assertions": [
+            { "type": "agent_retried", "agent": "intent_parser", "max_retries": 1 },
+            { "type": "exit_code", "equals": 0 }
+          ],
+          "priority": "P0"
+        }
+      ]
+    },
+    {
+      "id": "phase_2_planning",
+      "name": "Phase 2 — Planning Agents",
+      "phase": 2,
+      "type": "integration",
+      "agents": ["destination_research", "itinerary_builder", "accommodation", "logistics"],
+      "cases": [
+        {
+          "id": "P2-001",
+          "name": "Japan happy path — day count",
+          "edge_case_ref": "IT-01",
+          "input": {
+            "request": "Plan a 5-day trip to Japan. Tokyo + Kyoto. $3,000 budget. Love food and temples, hate crowds."
+          },
+          "assertions": [
+            { "type": "array_length", "path": "day_by_day", "equals": 5 },
+            { "type": "field_contains", "path": "day_by_day[*].city", "value": "Tokyo" },
+            { "type": "field_contains", "path": "day_by_day[*].city", "value": "Kyoto" }
+          ],
+          "priority": "P0"
+        },
+        {
+          "id": "P2-002",
+          "name": "Japan — neighborhoods and lodging",
+          "edge_case_ref": null,
+          "input": {
+            "request": "Plan a 5-day trip to Japan. Tokyo + Kyoto. $3,000 budget. Love food and temples, hate crowds."
+          },
+          "assertions": [
+            { "type": "array_min_length", "path": "neighborhoods_to_stay", "min": 2 },
+            { "type": "each_has_keys", "path": "neighborhoods_to_stay", "keys": ["city", "recommended_neighborhood"] },
+            { "type": "array_min_length", "path": "neighborhoods_to_stay[*].options", "min": 1 }
+          ],
+          "priority": "P0"
+        },
+        {
+          "id": "P2-003",
+          "name": "Japan — inter-city transport",
+          "edge_case_ref": "LO-01",
+          "input": {
+            "request": "Plan a 5-day trip to Japan. Tokyo + Kyoto. $3,000 budget. Love food and temples, hate crowds."
+          },
+          "assertions": [
+            { "type": "array_min_length", "path": "logistics.inter_city", "min": 1 },
+            { "type": "field_contains", "path": "logistics.inter_city[0].from", "value": "Tokyo" },
+            { "type": "field_contains", "path": "logistics.inter_city[0].to", "value": "Kyoto" },
+            { "type": "field_exists", "path": "logistics.inter_city[0].mode" },
+            { "type": "field_exists", "path": "logistics.inter_city[0].estimated_cost_usd" }
+          ],
+          "priority": "P0"
+        },
+        {
+          "id": "P2-004",
+          "name": "Japan — interests reflected in activities",
+          "edge_case_ref": "VA-04",
+          "input": {
+            "request": "Plan a 5-day trip to Japan. Tokyo + Kyoto. $3,000 budget. Love food and temples, hate crowds."
+          },
+          "assertions": [
+            { "type": "activities_match_interest", "interest": "temples", "min_matches": 1 },
+            { "type": "activities_match_interest", "interest": "food", "min_matches": 1 }
+          ],
+          "priority": "P1"
+        },
+        {
+          "id": "P2-005",
+          "name": "Jaipur — LLM-only Indian city",
+          "edge_case_ref": "DR-01",
+          "input": {
+            "request": "Plan a 4-day trip to Jaipur. $1,200 budget. Love forts and street food, hate crowds."
+          },
+          "assertions": [
+            { "type": "array_length", "path": "day_by_day", "equals": 4 },
+            { "type": "activities_match_interest", "interest": "forts", "min_matches": 1 },
+            { "type": "field_contains", "path": "day_by_day[*].city", "value": "Jaipur" },
+            { "type": "array_min_length", "path": "neighborhoods_to_stay", "min": 1 }
+          ],
+          "priority": "P1"
+        },
+        {
+          "id": "P2-006",
+          "name": "Single city — no inter-city transport required",
+          "edge_case_ref": "LO-01",
+          "input": {
+            "request": "3 days in Bangkok. $1,500. Street food and markets."
+          },
+          "assertions": [
+            { "type": "array_length", "path": "day_by_day", "equals": 3 },
+            { "type": "field_exists", "path": "logistics.local_transit_notes" }
+          ],
+          "priority": "P1"
+        },
+        {
+          "id": "P2-007",
+          "name": "Europe 10-day multi-city",
+          "edge_case_ref": "IN-07",
+          "input": {
+            "request": "10 days in Europe. Paris, Rome, and Barcelona. $5,000. Art, history, and food."
+          },
+          "assertions": [
+            { "type": "array_length", "path": "day_by_day", "equals": 10 },
+            { "type": "destinations_covered", "cities": ["Paris", "Rome", "Barcelona"] },
+            { "type": "array_min_length", "path": "logistics.inter_city", "min": 2 }
+          ],
+          "priority": "P1"
+        },
+        {
+          "id": "P2-008",
+          "name": "Too many cities for duration — degrade gracefully",
+          "edge_case_ref": "IN-07",
+          "input": {
+            "request": "Visit 8 European capitals in 4 days. $3,000."
+          },
+          "assertions": [
+            { "type": "array_length", "path": "day_by_day", "equals": 4 },
+            { "type": "assumptions_or_warnings_contain", "pattern": "subset|cities|days|abbreviated" }
+          ],
+          "priority": "P2"
+        }
+      ]
+    },
+    {
+      "id": "phase_3_budget_quality",
+      "name": "Phase 3 — Budget Analyst & Validator",
+      "phase": 3,
+      "type": "integration",
+      "agents": ["budget_analyst", "validator", "orchestrator"],
+      "cases": [
+        {
+          "id": "P3-001",
+          "name": "Japan — within budget and validated",
+          "edge_case_ref": "BU-01",
+          "input": {
+            "request": "Plan a 5-day trip to Japan. Tokyo + Kyoto. $3,000 budget. Love food and temples, hate crowds."
+          },
+          "assertions": [
+            { "type": "field_equals", "path": "validation_passed", "equals": true },
+            { "type": "field_in", "path": "budget.status", "values": ["within_budget"] },
+            { "type": "field_lte", "path": "budget.estimated_total_usd", "lte_field": "budget.budget_usd" },
+            { "type": "budget_breakdown_has_keys", "keys": ["lodging", "transport", "food", "activities"] }
+          ],
+          "priority": "P0"
+        },
+        {
+          "id": "P3-002",
+          "name": "Bangkok — over budget triggers revision",
+          "edge_case_ref": "BU-02",
+          "input": {
+            "request": "3 days in Bangkok. $800 total budget. Luxury hotels and fine dining."
+          },
+          "assertions": [
+            { "type": "or", "conditions": [
+              { "type": "field_in", "path": "budget.status", "values": ["within_budget"] },
+              { "type": "array_min_length", "path": "budget.savings_suggestions", "min": 1 }
+            ]},
+            { "type": "trace_contains", "pattern": "budget_analyst|accommodation|revision" }
+          ],
+          "priority": "P0"
+        },
+        {
+          "id": "P3-003",
+          "name": "Validator — all destinations covered",
+          "edge_case_ref": "VA-03",
+          "input": {
+            "request": "Plan a 5-day trip to Japan. Tokyo + Kyoto. $3,000 budget. Love food and temples, hate crowds."
+          },
+          "assertions": [
+            { "type": "destinations_covered", "cities": ["Tokyo", "Kyoto"] },
+            { "type": "field_equals", "path": "validation_passed", "equals": true }
+          ],
+          "priority": "P0"
+        },
+        {
+          "id": "P3-004",
+          "name": "Validator — duration matches day plans",
+          "edge_case_ref": "VA-02",
+          "input": {
+            "request": "Plan a 5-day trip to Japan. Tokyo + Kyoto. $3,000 budget. Love food and temples, hate crowds."
+          },
+          "assertions": [
+            { "type": "array_length", "path": "day_by_day", "equals_field": "requirements.duration_days" },
+            { "type": "field_equals", "path": "validation_passed", "equals": true }
+          ],
+          "priority": "P0"
+        },
+        {
+          "id": "P3-005",
+          "name": "Crowd dislike — off-peak scheduling",
+          "edge_case_ref": "IT-05",
+          "input": {
+            "request": "Plan a 5-day trip to Japan. Tokyo + Kyoto. $3,000 budget. Love food and temples, hate crowds."
+          },
+          "assertions": [
+            { "type": "llm_judge", "rubric": "Crowded attractions are scheduled early morning or late evening, not midday peak hours." },
+            { "type": "field_equals", "path": "validation_passed", "equals": true }
+          ],
+          "priority": "P1"
+        },
+        {
+          "id": "P3-006",
+          "name": "Transport-itinerary consistency",
+          "edge_case_ref": "XA-02",
+          "input": {
+            "request": "Plan a 5-day trip to Japan. Tokyo + Kyoto. $3,000 budget. Love food and temples, hate crowds."
+          },
+          "assertions": [
+            { "type": "transport_matches_city_transitions", "path_day_plans": "day_by_day", "path_transport": "logistics.inter_city" }
+          ],
+          "priority": "P0"
+        },
+        {
+          "id": "P3-007",
+          "name": "Max revision loops — best-effort return",
+          "edge_case_ref": "BU-07",
+          "input": {
+            "request": "5 days in Paris. $300 total budget. Mid-range hotels and restaurants."
+          },
+          "assertions": [
+            { "type": "or", "conditions": [
+              { "type": "field_in", "path": "budget.status", "values": ["over_budget"] },
+              { "type": "field_equals", "path": "validation_passed", "equals": false }
+            ]},
+            { "type": "output_has_keys", "keys": ["day_by_day", "budget", "summary"] },
+            { "type": "agent_calls_lte", "max": 15 }
+          ],
+          "priority": "P0"
+        },
+        {
+          "id": "P3-008",
+          "name": "Full agent trace — all 7 agents invoked",
+          "edge_case_ref": null,
+          "input": {
+            "request": "Plan a 5-day trip to Japan. Tokyo + Kyoto. $3,000 budget. Love food and temples, hate crowds."
+          },
+          "assertions": [
+            { "type": "trace_contains_agents", "agents": ["intent_parser", "destination_research", "itinerary_builder", "accommodation", "logistics", "budget_analyst", "validator"] },
+            { "type": "trace_agent_order", "order": ["intent_parser", "destination_research", "itinerary_builder", "accommodation", "logistics", "budget_analyst", "validator"] }
+          ],
+          "priority": "P0"
+        }
+      ]
+    },
+    {
+      "id": "phase_5_e2e",
+      "name": "Phase 5 — End-to-End & CLI",
+      "phase": 5,
+      "type": "e2e",
+      "cases": [
+        {
+          "id": "P5-001",
+          "name": "E2E — Japan canonical scenario",
+          "edge_case_ref": null,
+          "input": {
+            "request": "Plan a 5-day trip to Japan. Tokyo + Kyoto. $3,000 budget. Love food and temples, hate crowds.",
+            "cli_flags": []
+          },
+          "assertions": [
+            { "type": "exit_code", "equals": 0 },
+            { "type": "deliverables_present", "deliverables": ["day_by_day", "neighborhoods_to_stay", "logistics", "budget", "validation_passed"] },
+            { "type": "field_equals", "path": "validation_passed", "equals": true }
+          ],
+          "priority": "P0"
+        },
+        {
+          "id": "P5-002",
+          "name": "E2E — Jaipur scenario",
+          "edge_case_ref": "DR-01",
+          "input": {
+            "request": "Plan a 4-day trip to Jaipur. $1,200 budget. Love forts and street food, hate crowds.",
+            "cli_flags": []
+          },
+          "assertions": [
+            { "type": "exit_code", "equals": 0 },
+            { "type": "array_length", "path": "day_by_day", "equals": 4 },
+            { "type": "deliverables_present", "deliverables": ["day_by_day", "neighborhoods_to_stay", "logistics", "budget"] }
+          ],
+          "priority": "P0"
+        },
+        {
+          "id": "P5-003",
+          "name": "E2E — Europe 10-day scenario",
+          "edge_case_ref": null,
+          "input": {
+            "request": "10 days in Europe. Paris and Rome. $5,000. Art and history.",
+            "cli_flags": []
+          },
+          "assertions": [
+            { "type": "exit_code", "equals": 0 },
+            { "type": "array_length", "path": "day_by_day", "equals": 10 },
+            { "type": "validation_passed_or_warnings", "allow_warnings": true }
+          ],
+          "priority": "P1"
+        },
+        {
+          "id": "P5-004",
+          "name": "CLI — trace flag",
+          "edge_case_ref": "CL-03",
+          "input": {
+            "request": "3 days in Bangkok. $1,200.",
+            "cli_flags": ["--trace"]
+          },
+          "assertions": [
+            { "type": "exit_code", "equals": 0 },
+            { "type": "stderr_contains", "pattern": "Intent Parser|Destination Research|Itinerary Builder" }
+          ],
+          "priority": "P1"
+        },
+        {
+          "id": "P5-005",
+          "name": "CLI — json flag",
+          "edge_case_ref": "CL-02",
+          "input": {
+            "request": "3 days in Bangkok. $1,200.",
+            "cli_flags": ["--json"]
+          },
+          "assertions": [
+            { "type": "exit_code", "equals": 0 },
+            { "type": "stdout_is_valid_json", "equals": true }
+          ],
+          "priority": "P1"
+        },
+        {
+          "id": "P5-006",
+          "name": "CLI — no arguments shows help",
+          "edge_case_ref": "CL-01",
+          "input": {
+            "request": null,
+            "cli_flags": []
+          },
+          "assertions": [
+            { "type": "stdout_or_stderr_contains", "pattern": "usage|help|example" }
+          ],
+          "priority": "P1"
+        },
+        {
+          "id": "P5-007",
+          "name": "E2E — unknown city best-effort",
+          "edge_case_ref": "IN-04",
+          "input": {
+            "request": "Plan a 3-day trip to Narnia. $1,000 budget."
+          },
+          "assertions": [
+            { "type": "or", "conditions": [
+              { "type": "status_in", "values": ["failed", "clarification_needed"] },
+              { "type": "assumptions_contain", "pattern": "fictional|unknown|cannot" }
+            ]}
+          ],
+          "priority": "P2"
+        }
+      ]
+    },
+    {
+      "id": "problem_statement_deliverables",
+      "name": "Problem Statement Deliverables",
+      "phase": "all",
+      "type": "acceptance",
+      "cases": [
+        {
+          "id": "PS-001",
+          "name": "Day-by-day trip outline",
+          "edge_case_ref": null,
+          "input": {
+            "request": "Plan a 5-day trip to Japan. Tokyo + Kyoto. $3,000 budget. Love food and temples, hate crowds."
+          },
+          "assertions": [
+            { "type": "array_length", "path": "day_by_day", "equals": 5 },
+            { "type": "each_has_keys", "path": "day_by_day", "keys": ["day", "city", "activities"] }
+          ],
+          "priority": "P0"
+        },
+        {
+          "id": "PS-002",
+          "name": "Suggested neighborhoods / areas to stay",
+          "edge_case_ref": null,
+          "input": {
+            "request": "Plan a 5-day trip to Japan. Tokyo + Kyoto. $3,000 budget. Love food and temples, hate crowds."
+          },
+          "assertions": [
+            { "type": "array_min_length", "path": "neighborhoods_to_stay", "min": 1 },
+            { "type": "each_has_keys", "path": "neighborhoods_to_stay", "keys": ["city", "recommended_neighborhood", "reason"] }
+          ],
+          "priority": "P0"
+        },
+        {
+          "id": "PS-003",
+          "name": "Travel logistics between cities",
+          "edge_case_ref": null,
+          "input": {
+            "request": "Plan a 5-day trip to Japan. Tokyo + Kyoto. $3,000 budget. Love food and temples, hate crowds."
+          },
+          "assertions": [
+            { "type": "field_exists", "path": "logistics" },
+            { "type": "array_min_length", "path": "logistics.inter_city", "min": 1 }
+          ],
+          "priority": "P0"
+        },
+        {
+          "id": "PS-004",
+          "name": "Budget-friendly recommendations",
+          "edge_case_ref": null,
+          "input": {
+            "request": "Plan a 5-day trip to Japan. Tokyo + Kyoto. $3,000 budget. Love food and temples, hate crowds."
+          },
+          "assertions": [
+            { "type": "field_exists", "path": "budget" },
+            { "type": "field_exists", "path": "budget.breakdown" },
+            { "type": "field_exists", "path": "budget.estimated_total_usd" }
+          ],
+          "priority": "P0"
+        },
+        {
+          "id": "PS-005",
+          "name": "Final itinerary respects preferences and constraints",
+          "edge_case_ref": null,
+          "input": {
+            "request": "Plan a 5-day trip to Japan. Tokyo + Kyoto. $3,000 budget. Love food and temples, hate crowds."
+          },
+          "assertions": [
+            { "type": "field_equals", "path": "validation_passed", "equals": true },
+            { "type": "activities_match_interest", "interest": "temples", "min_matches": 1 },
+            { "type": "activities_match_interest", "interest": "food", "min_matches": 1 }
+          ],
+          "priority": "P0"
+        }
+      ]
+    },
+    {
+      "id": "llm_judge_rubrics",
+      "name": "LLM-as-Judge Rubrics (non-deterministic checks)",
+      "phase": "all",
+      "type": "llm_judge",
+      "cases": [
+        {
+          "id": "LJ-001",
+          "name": "Plan coherence",
+          "rubric": "The day-by-day plan is logically sequenced: activities in the same city are grouped, travel days are lighter, and there are no obvious geographic impossibilities.",
+          "pass_criteria": "Score >= 4/5",
+          "priority": "P1"
+        },
+        {
+          "id": "LJ-002",
+          "name": "Preference alignment",
+          "rubric": "Stated interests appear in the itinerary and stated dislikes (e.g. crowds) are reasonably avoided.",
+          "pass_criteria": "Score >= 4/5",
+          "priority": "P1"
+        },
+        {
+          "id": "LJ-003",
+          "name": "Budget plausibility",
+          "rubric": "Estimated costs are plausible for the destination and travel style — not off by an order of magnitude.",
+          "pass_criteria": "Score >= 3/5",
+          "priority": "P2"
+        },
+        {
+          "id": "LJ-004",
+          "name": "PM demo readability",
+          "rubric": "A non-technical product manager could read the output and understand what each agent contributed and how the final plan meets the user request.",
+          "pass_criteria": "Score >= 4/5",
+          "priority": "P1"
+        },
+        {
+          "id": "LJ-005",
+          "name": "Venue plausibility",
+          "rubric": "Recommended hotels and attractions are real, well-known places — not obviously fabricated names.",
+          "pass_criteria": "Score >= 4/5",
+          "priority": "P1"
+        }
+      ]
+    }
+  ],
+  "assertion_types_reference": {
+    "schema_valid": "Pydantic model validates without error",
+    "field_equals": "JSON path equals expected value",
+    "field_contains": "Array or string contains value",
+    "field_contains_all": "Array contains all specified values",
+    "field_exists": "JSON path is present and non-null",
+    "field_gte": "Numeric field >= threshold",
+    "field_lte": "Numeric field <= threshold or lte_field",
+    "field_in": "Value in allowed set",
+    "array_length": "Array at path has exact length",
+    "array_min_length": "Array at path has minimum length",
+    "each_has_keys": "Every object in array has required keys",
+    "destinations_covered": "Every city appears in day_by_day",
+    "activities_match_interest": "At least min_matches activities relate to interest",
+    "assumptions_contain": "assumptions[] matches regex pattern",
+    "budget_breakdown_has_keys": "budget.breakdown contains line items",
+    "transport_matches_city_transitions": "Transport suggested_day aligns with itinerary",
+    "trace_contains_agents": "Execution trace lists all agents",
+    "trace_agent_order": "Agents run in expected sequence",
+    "agent_calls_lte": "Total agent invocations within limit",
+    "agent_retried": "Agent retried on failure up to max_retries",
+    "deliverables_present": "All problem-statement output fields exist",
+    "exit_code": "CLI process exit code",
+    "stdout_is_valid_json": "CLI stdout parses as JSON",
+    "llm_judge": "LLM scores output against rubric (see llm_judge_rubrics suite)"
+  },
+  "run_commands": {
+    "unit": "pytest tests/ -m unit -v",
+    "integration": "pytest tests/ -m integration -v",
+    "e2e": "pytest tests/test_e2e.py -v",
+    "eval_suite": "pytest tests/test_evals.py -v",
+    "canonical_japan": "python -m src.main \"Plan a 5-day trip to Japan. Tokyo + Kyoto. $3,000 budget. Love food and temples, hate crowds.\" --trace",
+    "canonical_jaipur": "python -m src.main \"Plan a 4-day trip to Jaipur. $1,200 budget. Love forts and street food, hate crowds.\" --trace"
+  }
+}

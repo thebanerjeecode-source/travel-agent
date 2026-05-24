@@ -1,0 +1,15 @@
+__pycache__
+*.pyc
+.env
+.venv
+venv
+.git
+output
+frontend/node_modules
+frontend/.next
+.pytest_cache
+*.md
+!prompts/**/*.md
+docs
+tests
+examples

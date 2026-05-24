@@ -1,0 +1,21 @@
+intent_parser:
+  provider: groq
+  model: llama-3.3-70b-versatile
+destination_research:
+  provider: groq
+  model: llama-3.3-70b-versatile
+itinerary_builder:
+  provider: groq
+  model: llama-3.3-70b-versatile
+accommodation:
+  provider: groq
+  model: llama-3.3-70b-versatile
+logistics:
+  provider: groq
+  model: llama-3.3-70b-versatile
+budget_analyst:
+  provider: gemini
+  model: gemini-2.5-flash
+validator:
+  provider: gemini
+  model: gemini-2.5-flash

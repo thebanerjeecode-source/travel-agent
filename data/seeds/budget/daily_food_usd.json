@@ -1,0 +1,4 @@
+{
+  "Tokyo": { "budget": 30, "mid-range": 55, "luxury": 100 },
+  "Kyoto": { "budget": 25, "mid-range": 50, "luxury": 90 }
+}

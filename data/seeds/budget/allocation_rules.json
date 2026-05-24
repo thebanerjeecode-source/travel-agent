@@ -1,0 +1,11 @@
+{
+  "lodging_pct": 0.35,
+  "food_pct": 0.30,
+  "transport_pct": 0.15,
+  "activities_pct": 0.10,
+  "default_savings": [
+    "Stay in a business hotel instead of a boutique property.",
+    "Use set lunch menus at restaurants for better value.",
+    "Walk between nearby sights instead of taking taxis."
+  ]
+}

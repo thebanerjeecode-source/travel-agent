@@ -1,0 +1,49 @@
+{
+  "city": "Kyoto",
+  "coordinates": { "lat": 35.0116, "lon": 135.7681 },
+  "neighborhoods": [
+    {
+      "name": "Higashiyama",
+      "fit_score": 0.9,
+      "tags": ["temples", "traditional", "walkable"],
+      "reason": "Walkable temple district with traditional atmosphere"
+    },
+    {
+      "name": "Gion",
+      "fit_score": 0.85,
+      "tags": ["culture", "food", "historic"],
+      "reason": "Historic geisha district and kaiseki dining"
+    }
+  ],
+  "attractions": [
+    {
+      "name": "Fushimi Inari Shrine",
+      "category": "temple",
+      "crowd_level": "high",
+      "best_time": "early morning",
+      "estimated_cost_usd": 0
+    },
+    {
+      "name": "Kiyomizu-dera",
+      "category": "temple",
+      "crowd_level": "high",
+      "best_time": "early morning",
+      "estimated_cost_usd": 4
+    },
+    {
+      "name": "Arashiyama Bamboo Grove",
+      "category": "nature",
+      "crowd_level": "high",
+      "best_time": "early morning",
+      "estimated_cost_usd": 0
+    },
+    {
+      "name": "Nishiki Market",
+      "category": "food",
+      "crowd_level": "medium",
+      "best_time": "morning",
+      "estimated_cost_usd": 10
+    }
+  ],
+  "food_highlights": ["Nishiki Market", "Kaiseki in Gion", "Matcha sweets in Higashiyama"]
+}

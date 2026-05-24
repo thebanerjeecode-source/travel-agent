@@ -1,0 +1,31 @@
+{
+  "city": "Kyoto",
+  "neighborhoods": [
+    {
+      "name": "Higashiyama",
+      "avg_price_per_night_usd": { "budget": 55, "mid-range": 110, "luxury": 220 },
+      "pros": ["Temple access", "Walkable", "Traditional"],
+      "cons": ["Hilly streets"]
+    }
+  ],
+  "properties": [
+    {
+      "name": "Hotel The Celestine Kyoto Gion",
+      "neighborhood": "Higashiyama",
+      "tier": "mid-range",
+      "price_per_night_usd": 110
+    },
+    {
+      "name": "Piece Hostel Kyoto",
+      "neighborhood": "Higashiyama",
+      "tier": "budget",
+      "price_per_night_usd": 45
+    },
+    {
+      "name": "Four Seasons Kyoto",
+      "neighborhood": "Higashiyama",
+      "tier": "luxury",
+      "price_per_night_usd": 600
+    }
+  ]
+}

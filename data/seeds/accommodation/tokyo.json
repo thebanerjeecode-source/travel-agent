@@ -1,0 +1,31 @@
+{
+  "city": "Tokyo",
+  "neighborhoods": [
+    {
+      "name": "Shinjuku",
+      "avg_price_per_night_usd": { "budget": 60, "mid-range": 120, "luxury": 250 },
+      "pros": ["Transit hub", "Food variety"],
+      "cons": ["Busy at night"]
+    }
+  ],
+  "properties": [
+    {
+      "name": "Hotel Gracery Shinjuku",
+      "neighborhood": "Shinjuku",
+      "tier": "mid-range",
+      "price_per_night_usd": 120
+    },
+    {
+      "name": "Ibis Shinjuku",
+      "neighborhood": "Shinjuku",
+      "tier": "budget",
+      "price_per_night_usd": 75
+    },
+    {
+      "name": "Park Hyatt Tokyo",
+      "neighborhood": "Shinjuku",
+      "tier": "luxury",
+      "price_per_night_usd": 450
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+}
+
+body {
+  @apply bg-surface-alt text-ink antialiased;
+}
+
+textarea:focus,
+button:focus-visible {
+  @apply outline-none ring-2 ring-accent ring-offset-2;
+}
