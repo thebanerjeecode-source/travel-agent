@@ -473,7 +473,7 @@ travel-agent/
 ├── frontend/                    ← Phase 6: Next.js or Vite + React UI
 │   ├── app/ or src/
 │   ├── package.json
-│   └── vercel.json
+│   └── railway.toml
 ├── src/
 │   ├── api/                     ← Phase 6: FastAPI REST layer
 │   │   ├── main.py              # Uvicorn entry: uvicorn src.api.main:app
@@ -513,7 +513,7 @@ travel-agent/
 | Frontend | — | Next.js 14 or Vite + React + Tailwind |
 | Streaming | — | SSE for agent trace (optional v1.1) |
 | Logging | structlog | Same + request IDs in API |
-| Hosting | Local | Render/Railway (API) + Vercel (UI) |
+| Hosting | Local | Render (API) + Railway (UI) |
 | Containers | — | Docker + docker-compose |
 
 ---
@@ -662,7 +662,7 @@ The CLI and API both call the same function — no duplicated orchestration logi
 
 | Alternative | When to use |
 |-------------|-------------|
-| **Next.js + Tailwind** (recommended) | Shareable demo, Vercel deploy, polished UI |
+| **Next.js + Tailwind** (recommended) | Shareable demo, Railway deploy, polished UI |
 | **Vite + React** | Lighter bundle if you skip SSR |
 | **Streamlit** | 1-day internal hackathon only — hard to customize |
 
@@ -721,9 +721,9 @@ sequenceDiagram
 
 ```
                     ┌──────────────┐
-                    │   Vercel     │
+                    │   Railway    │
                     │  (frontend)  │
-                    │  Static/SSR  │
+                    │   Next.js    │
                     └──────┬───────┘
                            │ HTTPS
                            ▼
@@ -738,7 +738,7 @@ sequenceDiagram
          Groq API    Gemini API   OpenTripMap (opt.)
 ```
 
-**Why split:** Frontend on Vercel (free CDN, instant deploys); API on Render (native Python, secret env vars).
+**Why split:** Frontend on Railway (Next.js, one dashboard with your other projects); API on Render (native Python, Blueprint IaC, long-running requests).
 
 ### 15.2 Environment variables
 
@@ -746,7 +746,7 @@ sequenceDiagram
 |----------|-------|---------|
 | `GROQ_API_KEY` | API server only | Planning agents |
 | `GEMINI_API_KEY` | API server only | Budget + Validator |
-| `ALLOWED_ORIGINS` | API server | CORS — e.g. `https://your-app.vercel.app` |
+| `ALLOWED_ORIGINS` | API server | CORS — e.g. `https://your-app.up.railway.app` |
 | `NEXT_PUBLIC_API_URL` | Frontend build | API base URL |
 | `API_SECRET` | API server (optional) | Protect public deploy from abuse |
 | `DATA_MODE` | API server | `auto` / `seed` / `live` |

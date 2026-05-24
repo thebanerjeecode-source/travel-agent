@@ -37,7 +37,7 @@ CLI (Typer)                      FastAPI REST API  ← wraps Orchestrator
 Orchestrator + 7 agents          React/Next.js UI  ← chat + itinerary + trace
     │                                │
     ▼                                ▼
-TripPlan JSON                    Deploy: Render/Railway (API) + Vercel (UI)
+TripPlan JSON                    Deploy: Render (API) + Railway (UI)
 ```
 
 | Complete | Next |
@@ -524,7 +524,7 @@ Phase 3 complete.
 
 ## Phase 6 — Frontend & Deployment ✅
 
-> **Status: Done.** FastAPI wraps Orchestrator; Next.js UI with form, trace, itinerary; Docker + Render/Vercel configs.
+> **Status: Done.** FastAPI wraps Orchestrator; Next.js UI with form, trace, itinerary; Docker + Render/Railway configs.
 
 **Goal:** Let anyone use the travel planner in a browser — with live agent trace, readable itinerary, and a shareable hosted URL.
 
@@ -552,11 +552,11 @@ TripPlan JSON → UI renders day-by-day, budget, validation
 | Layer | Choice | Why |
 |-------|--------|-----|
 | **API** | FastAPI + Uvicorn | Native Python; wraps existing `Orchestrator.run()` |
-| **Frontend** | Next.js 14 (App Router) or Vite + React | Component ecosystem, easy Vercel deploy |
+| **Frontend** | Next.js 14 (App Router) or Vite + React | Component ecosystem, easy Railway deploy |
 | **Styling** | Tailwind CSS | Fast iteration; matches itinerary layout needs |
 | **Streaming** | Server-Sent Events (SSE) | Push agent trace steps to UI during 30–90s runs |
 | **Hosting (API)** | [Render](https://render.com) or [Railway](https://railway.app) | Simple Python deploy, env secrets, free tier |
-| **Hosting (UI)** | [Vercel](https://vercel.com) or Netlify | Static/SSR frontend, CDN |
+| **Hosting (UI)** | [Railway](https://railway.com) | Next.js frontend, same dashboard as other apps |
 | **Container** | Docker + `docker-compose.yml` | Local prod-like stack; optional single-service deploy |
 
 **Alternative (fastest MVP, ~1 day):** Streamlit app in `frontend/streamlit_app.py` calling Orchestrator directly — good for internal demo only; harder to style and scale. Prefer FastAPI + React for a shareable product demo.
@@ -578,7 +578,7 @@ TripPlan JSON → UI renders day-by-day, budget, validation
 | 6.11 | Dry-run toggle in UI | Demo mode without API keys |
 | 6.12 | Dockerfile + compose | `Dockerfile`, `docker-compose.yml` (api + optional frontend) |
 | 6.13 | Deploy API to Render/Railway | `render.yaml` or Railway config |
-| 6.14 | Deploy frontend to Vercel | `frontend/vercel.json`, env `NEXT_PUBLIC_API_URL` |
+| 6.14 | Deploy frontend to Railway | `frontend/railway.toml`, env `NEXT_PUBLIC_API_URL` |
 | 6.15 | Health check + README deploy section | `GET /health`, update `README.md` |
 
 ### API contract (v1)
@@ -650,14 +650,14 @@ data: {"trip_plan": {...}}
    - Connect GitHub repo
    - Build: `pip install -r requirements.txt`
    - Start: `uvicorn src.api.main:app --host 0.0.0.0 --port $PORT`
-   - Env: `GROQ_API_KEY`, `GEMINI_API_KEY`, `ALLOWED_ORIGINS=https://your-app.vercel.app`
+   - Env: `GROQ_API_KEY`, `GEMINI_API_KEY`, `ALLOWED_ORIGINS=https://your-app.up.railway.app`
 
-2. **Frontend (Vercel)**
+2. **Frontend (Railway)**
    - Root: `frontend/`
    - Env: `NEXT_PUBLIC_API_URL=https://your-api.onrender.com`
-   - Build: `npm run build`
+   - Generate public domain in Railway Networking
 
-3. **Verify:** Open Vercel URL → submit Japan request → see trace + itinerary
+3. **Verify:** Open Railway URL → submit Japan request → see trace + itinerary
 
 #### Option B — Docker (local or single VPS)
 
@@ -1340,7 +1340,7 @@ See also: [edgecase.md](./edgecase.md) (edge case catalog) · [evals.json](./eva
 
 **Done (Phases 0–5):** Full multi-agent pipeline — Intent Parser through Validator (Groq + Gemini), seed data layer, CLI with `--dry-run`, readable output, e2e tests, and example scripts.
 
-**Next (Phase 6):** FastAPI REST API + React/Next.js web UI + deploy to Render/Vercel (or Docker).
+**Next (Phase 6):** FastAPI REST API + React/Next.js web UI + deploy to Render/Railway (or Docker).
 
 **No agent rewrites required** — Phase 6 wraps the existing `Orchestrator` and reuses `TripPlan` JSON, Markdown renderer, and trace format from the CLI.
 

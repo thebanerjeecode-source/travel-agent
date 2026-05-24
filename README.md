@@ -39,10 +39,10 @@ docker compose up --build
 **API (Render Blueprint):** Commit `render.yaml` at repo root → Render **New → Blueprint** → connect GitHub.  
 → Full guide: **[docs/deploy-api-render.md](docs/deploy-api-render.md)**
 
-**Frontend (Vercel):** Root directory `frontend/`, env `NEXT_PUBLIC_API_URL=https://travel-agent-api.onrender.com`.  
-→ Full guide: **[docs/deploy-vercel.md](docs/deploy-vercel.md)**
+**Frontend (Railway):** Root directory `frontend/`, env `NEXT_PUBLIC_API_URL=https://travel-agent-api.onrender.com`.  
+→ Full guide: **[docs/deploy-railway-frontend.md](docs/deploy-railway-frontend.md)**
 
-After Vercel deploy, set `ALLOWED_ORIGINS` on the API to your Vercel URL and redeploy.
+After Railway deploy, set `ALLOWED_ORIGINS` on the API to your Railway URL and redeploy.
 
 ## Quick start (CLI)
 
@@ -180,7 +180,8 @@ pytest tests/test_e2e.py -v
 - [Problem statement](docs/problemStatement.md)
 - [Architecture](docs/architecture.md) — agents, Trip Context, **§13–15 frontend & deploy**
 - [Implementation plan](docs/implementation-plan.md) — **Phase 6** build steps
-- [Edge cases](docs/edgecase.md)
+- [Deploy API (Render Blueprint)](docs/deploy-api-render.md)
+- [Deploy frontend (Railway)](docs/deploy-railway-frontend.md)
 
 ## Roadmap
 
